@@ -1,5 +1,6 @@
 import requests
 import json
+import os
 
 # ================= 配置区 =================
 API_KEY = os.environ.get("STEAM_API_KEY")
