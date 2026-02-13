@@ -1,0 +1,40 @@
+name: Auto Update Steam Tracker
+
+# 触发条件：什么时候运行这个脚本？
+on:
+  schedule:
+    # 每天的 UTC 时间 00:00 运行（也就是北京时间早上 8:00）
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 这个配置允许你在网页上手动点击按钮运行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # 在最新的 Ubuntu 虚拟服务器上运行
+
+    steps:
+      - name: 1. 拉取仓库代码
+        uses: actions/checkout@v3
+
+      - name: 2. 安装 Python 环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 3. 安装依赖包 (requests)
+        run: pip install requests
+
+      - name: 4. 运行拉取数据的脚本
+        env:
+          # 把第一步存的 Secrets 传递给 Python
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
+          STEAM_ID: ${{ secrets.STEAM_ID }}
+        run: python main.py
+
+      - name: 5. 提交并推送到 GitHub Pages
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add index.html
+          # 如果内容有变化就提交，如果没有变化就跳过
+          git commit -m "Auto-update Steam data" -a || exit 0
+          git push
